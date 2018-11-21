@@ -1,0 +1,50 @@
+---
+- hosts: demo
+  become: yes
+  connection: local
+  gather_facts: no
+  tasks:
+    - name: update
+      action: apt update_cache=yes
+
+    - name: install git
+      apt: name=git state=present
+
+    - name: update
+      apt: update_cache=yes
+
+    - name: install docker
+      apt: name=docker state=present
+
+    - name: install docker-compose
+      apt: name=docker-compose state=present
+    
+    - name: update
+      apt: update_cache=yes
+    
+    - name: Install nvm
+      sudo: yes
+      sudo_user: "{{ nvm.user }}"
+      git: repo=https://github.com/creationix/nvm.git dest=~/.nvm version={{ nvm.version }}
+      tags: nvm
+
+    - name: Source nvm in ~/.profile
+      sudo: yes
+      sudo_user: "{{ nvm.user }}"
+      lineinfile: >
+        dest=~/.profile
+        line="source ~/.nvm/nvm.sh"
+        create=yes
+      tags: nvm
+
+    - name: Install {{ nvm.node_version }}
+      command: sudo -iu {{ nvm.user }} nvm install {{ nvm.node_version }}
+      register: nvm_install_result
+      changed_when: "'is already installed.' not in nvm_install_result.stdout"
+
+
+
+    - name: Installing packages
+      action: "{{ ansible_pkg_mgr }} pkg={{ item }} state=present"
+      with_items:
+        - openssl

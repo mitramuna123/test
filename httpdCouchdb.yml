@@ -1,0 +1,27 @@
+---
+- hosts: demo
+  become: yes
+  gather_facts: no
+  tasks: 
+    - name: install docker
+      shell: curl -sSL https://get.docker.com/ | sh
+      args:
+         creates: /usr/bin/docker  
+    
+    - name: httpd install
+      docker:
+        name: httpd
+        image: httpd
+        state: started
+        expose:
+        - 6379
+        
+    - name: couchdb install
+      docker:
+        name: couchdb
+        image: couchdb
+        state: started
+        expose:
+        - 5040
+         
+ 
